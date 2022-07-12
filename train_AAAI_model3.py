@@ -67,7 +67,7 @@ def get_args_parser():
                         help='epochs to warmup LR')
 
     # Dataset parameters
-    parser.add_argument('--data_path', default= '/HDD/dataset/imagenet/ILSVRC/Data/CLS-LOC', type=str, # '/HDD/dataset/imagenet/ILSVRC/Data/CLS-LOC
+    parser.add_argument('--data_path', default= '/mnt/md0/dataset/imagenet/ILSVRC/Data/CLS-LOC', type=str, # '/HDD/dataset/imagenet/ILSVRC/Data/CLS-LOC
                         help='dataset path')
     parser.add_argument('--output_dir', default='./output_dir_version1',
                         help='path where to save, empty for no saving')
@@ -155,8 +155,19 @@ def main(args):
 
     lambda_ = 0.3
     lambda_2 = 0.7
+    epoch_acc1_=[]
+    epoch_acc5_=[]
+    loss_save_=0.0
     for epoch in range(args.start_epoch, args.epochs):
         running_loss = 0.0
+        loss = 0.0
+        loss_save = 0.0
+        acc1 = 0.0
+        acc5 = 0.0 
+        acc1_save = 0.0
+        acc5_save = 0.0
+        epoch_total_acc1 =0.0
+        epoch_total_acc5 =0.0
         epoch_glance_acc1 = 0.0
         epoch_glance_acc5 = 0.0
         epoch_gaze_acc1 = 0.0
@@ -212,27 +223,36 @@ def main(args):
                 #epoch_gaze_acc5 = 0.0
                 epoch_total_acc1 = 0.0
                 epoch_total_acc5 = 0.0
+        loss_save = loss/i
+        acc1_save = acc1/i
+        acc5_save = acc5/i
+        batch_time = time.time() - start_time
+        print(batch_time)
         print('-----------------------------------------')
        
 
               
 
         if (epoch % 3 == 0 or epoch + 1 == args.epochs):
-            PATH_glance = '/home/yunsung/mask_vit/AAAI/train_model_glance_AAAI_version3/' # 모델 경로명 확인
+            PATH = '/mnt/md0/yunsung/AAAI/' # 모델 경로명 확인
 
-            torch.save(model_glance, PATH_glance + 'model_glance.pt')  # 전체 모델 저장
-            torch.save(model_glance.state_dict(), PATH_glance +str(epoch)+ '_epoch_model_glance_state_dict.pt')  # 모델 객체의 state_dict 저장
+            # torch.save(model_glance, PATH_glance + 'model_glance.pt')  # 전체 모델 저장
+            # torch.save(model_glance.state_dict(), PATH_glance +str(epoch)+ '_epoch_model_glance_state_dict.pt')  # 모델 객체의 state_dict 저장
             torch.save({
-                        'model': model_glance.state_dict(),
-                        'optimizer': optimizer.state_dict()
-                        }, PATH_glance + 'all.tar')
-            PATH_gaze = '/home/yunsung/mask_vit/AAAI/train_model_gaze_AAAI_version3/'
-            torch.save(model_gaze, PATH_gaze + 'model_gaze.pt')  # 전체 모델 저장
-            torch.save(model_gaze.state_dict(), PATH_gaze +str(epoch) + '_epoch_model_gaze_state_dict.pt')  # 모델 객체의 state_dict 저장
-            torch.save({
-                        'model': model_gaze.state_dict(),
-                        'optimizer': optimizer1.state_dict()
-                        }, PATH_gaze + 'all.tar')
+                        'model_glance': model_glance.state_dict(),
+                        'optimizer': optimizer.state_dict(),
+                        'model_gaze': model_gaze.state_dict(),
+                        'optimizer1': optimizer1.state_dict(),
+                        'epoch': epoch,
+                        'loss':loss_save
+                        }, PATH)
+            # PATH_gaze = '/mnt/md0/yunsung/AAAI/train_model_gaze_AAAI_version3/'
+            # torch.save(model_gaze, PATH_gaze + 'model_gaze.pt')  # 전체 모델 저장
+            # torch.save(model_gaze.state_dict(), PATH_gaze +str(epoch) + '_epoch_model_gaze_state_dict.pt')  # 모델 객체의 state_dict 저장
+            # torch.save({
+            #             'model': model_gaze.state_dict(),
+            #             'optimizer': optimizer1.state_dict()
+            #             }, PATH_gaze + 'all.tar')
       
 
     total_time = time.time() - start_time
@@ -243,6 +263,4 @@ def main(args):
 if __name__ == '__main__':
     args = get_args_parser()
     args = args.parse_args()
-    if args.output_dir:
-        Path(args.output_dir).mkdir(parents=True, exist_ok=True)
     main(args)
